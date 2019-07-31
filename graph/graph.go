@@ -121,6 +121,7 @@ func addBarChart(p *plot.Plot, w vg.Length, costList invoice.CostList) error {
 		plotCostList = append(plotCostList, c)
 	}
 
+	plotCostList = plotCostList.Padding().Sort()
 	barChart, err := newBarChart(colorCount, plotCostList.Values(), w)
 	if err != nil {
 		return err
