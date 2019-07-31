@@ -18,7 +18,6 @@ package graph
 import (
 	"bytes"
 	"image/color"
-	"log"
 	"math"
 	"strconv"
 	"time"
@@ -91,14 +90,11 @@ func addBarChart(p *plot.Plot, w vg.Length, costList invoice.CostList) error {
 
 	plotCostList := make(invoice.CostList, 0, len(costList))
 
-	log.Printf("costList length: %d\n", len(costList))
-
 	for _, c := range costList {
 		if currentProject == "" {
 			currentProject = c.Project
 		}
 
-		log.Printf("cost: %v\n", c)
 		if currentProject != c.Project {
 			plotCostList = plotCostList.Padding().Sort()
 			barChart, err := newBarChart(colorCount, plotCostList.Values(), w)
