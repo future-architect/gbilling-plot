@@ -50,7 +50,7 @@ func (list CostList) Values() []float64 {
 func (list CostList) Padding() CostList {
 	begin := time.Now().AddDate(0, 0, -29)
 	end := time.Now()
-	for d := begin; d.Day() < end.Day(); d = d.AddDate(0, 0, 1) {
+	for d := begin; d.Before(end); d = d.AddDate(0, 0, 1) {
 		isFind := false
 		for i := 0; i < len(list); i++ {
 			if d.Format("2006-01-02") == list[i].Date {
