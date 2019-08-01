@@ -17,16 +17,17 @@ package graph
 
 import (
 	"bytes"
-	"github.com/future-architect/gbilling-plot/invoice"
-	"gonum.org/v1/plot"
-	"gonum.org/v1/plot/plotter"
-	"gonum.org/v1/plot/plotutil"
-	"gonum.org/v1/plot/vg"
 	"image/color"
 	"math"
 	"strconv"
 	"time"
 	"unicode/utf8"
+
+	"github.com/future-architect/gbilling-plot/invoice"
+	"gonum.org/v1/plot"
+	"gonum.org/v1/plot/plotter"
+	"gonum.org/v1/plot/plotutil"
+	"gonum.org/v1/plot/vg"
 )
 
 func Draw(costList invoice.CostList) ([]byte, error) {
@@ -95,6 +96,7 @@ func addBarChart(p *plot.Plot, w vg.Length, costList invoice.CostList) error {
 		}
 
 		if currentProject != c.Project {
+			plotCostList = plotCostList.Padding().Sort()
 			barChart, err := newBarChart(colorCount, plotCostList.Values(), w)
 			if err != nil {
 				return err
@@ -115,6 +117,7 @@ func addBarChart(p *plot.Plot, w vg.Length, costList invoice.CostList) error {
 		plotCostList = append(plotCostList, c)
 	}
 
+	plotCostList = plotCostList.Padding().Sort()
 	barChart, err := newBarChart(colorCount, plotCostList.Values(), w)
 	if err != nil {
 		return err

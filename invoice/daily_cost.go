@@ -15,6 +15,11 @@
  */
 package invoice
 
+import (
+	"sort"
+	"time"
+)
+
 type Cost struct {
 	Date    string  `bigquery:"date"`
 	Project string  `bigquery:"project"`
@@ -39,4 +44,30 @@ func (list CostList) Values() []float64 {
 		result = append(result, v.Cost)
 	}
 	return result
+}
+
+// return zero padded list to adopt month length
+func (list CostList) Padding() CostList {
+	begin := time.Now().AddDate(0, 0, -29)
+	end := time.Now()
+	for d := begin; d.Before(end); d = d.AddDate(0, 0, 1) {
+		isFind := false
+		for i := 0; i < len(list); i++ {
+			if d.Format("2006-01-02") == list[i].Date {
+				isFind = true
+				break
+			}
+		}
+		if !isFind {
+			list = append(list, Cost{d.Format("2006-01-02"), "", 0})
+		}
+	}
+	return list
+}
+
+func (list CostList) Sort() CostList {
+	sort.Slice(list, func(i, j int) bool {
+		return list[i].Date < list[j].Date
+	})
+	return list
 }
