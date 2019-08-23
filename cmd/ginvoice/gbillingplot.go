@@ -17,7 +17,7 @@ package main
 
 import (
 	"context"
-	"errors"
+	"flag"
 	"github.com/future-architect/gbilling-plot/graph"
 	"github.com/future-architect/gbilling-plot/invoice"
 	"io/ioutil"
@@ -29,41 +29,42 @@ const period = 30
 
 // export GOOGLE_APPLICATION_CREDENTIALS=key.json
 func main() {
-	log.Println("start")
 
-	var (
-		projectID     = os.Getenv("GCP_PROJECT")
-		tableName     = os.Getenv("TABLE_NAME")
-		slackAPIToken = os.Getenv("SLACK_API_TOKEN")
-		slackChannel  = os.Getenv("SLACK_CHANNEL")
-	)
+	projectID := flag.String("p", os.Getenv("GCP_PROJECT"), "GCP project name")
+	tableName := flag.String("t", os.Getenv("TABLE_NAME"), "BigQuery billing table name")
+	flag.StringVar(projectID, "project", "", "GCP project name")
+	flag.StringVar(tableName, "table", "", "BigQuery billing table name")
+	flag.Parse()
 
-	if projectID == "" || tableName == "" || slackAPIToken == "" || slackChannel == "" {
-		panic(errors.New("missing env"))
+	if *projectID == "" || *tableName == "" {
+		log.Fatal("missing env")
 	}
 
 	if os.Getenv("GOOGLE_APPLICATION_CREDENTIALS") == "" {
-		panic("GOOGLE_APPLICATION_CREDENTIALS is required")
+		log.Fatal("GOOGLE_APPLICATION_CREDENTIALS is required")
 	}
 
-	ivc, err := invoice.NewInvoice(projectID)
+	ctx := context.Background()
+	ivc, err := invoice.NewInvoice(ctx, *projectID)
 	if err != nil {
-		panic(err)
+		log.Println("invoice initialize is failed")
+		log.Fatal(err)
 	}
 
-	costs, err := ivc.FetchBilling(context.Background(), tableName, period)
+	costs, err := ivc.FetchBilling(ctx, *tableName, period)
 	if err != nil {
-		panic(err)
+		log.Println("fetch billing is failed")
+		log.Fatal(err)
 	}
 
 	plotBytes, err := graph.Draw(costs)
 	if err != nil {
-		panic(err)
+		log.Println("fetch billing is failed")
+		log.Fatal(err)
 	}
 
 	if err := ioutil.WriteFile("example.png", plotBytes, 0644); err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
-	log.Println("finish")
 }

@@ -26,8 +26,8 @@ type invoice struct {
 	client *bigquery.Client
 }
 
-func NewInvoice(projectID string) (*invoice, error) {
-	client, err := bigquery.NewClient(context.Background(), projectID)
+func NewInvoice(ctx context.Context, projectID string) (*invoice, error) {
+	client, err := bigquery.NewClient(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}

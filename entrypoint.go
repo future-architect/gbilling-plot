@@ -29,37 +29,41 @@ import (
 
 const period = 30
 
-func GraphedBilling(ctx context.Context, msg *pubsub.Message) error {
+func GraphedBilling(ctx context.Context, _ *pubsub.Message) error {
 	log.Println("start GraphedBilling")
 
 	var (
-		projectID     = os.Getenv("GCP_PROJECT")
-		tableName     = os.Getenv("TABLE_NAME")
-		slackAPIToken = os.Getenv("SLACK_API_TOKEN")
-		slackChannel  = os.Getenv("SLACK_CHANNEL")
+		projectID    = os.Getenv("GCP_PROJECT")
+		tableName    = os.Getenv("TABLE_NAME")
+		slackToken   = os.Getenv("SLACK_API_TOKEN")
+		slackChannel = os.Getenv("SLACK_CHANNEL")
 	)
 
-	if projectID == "" || tableName == "" || slackAPIToken == "" || slackChannel == "" {
+	if projectID == "" || tableName == "" || slackToken == "" || slackChannel == "" {
 		return errors.New("missing env")
 	}
 
-	ivc, err := invoice.NewInvoice(projectID)
+	ivc, err := invoice.NewInvoice(ctx, projectID)
 	if err != nil {
+		log.Println("invoice initialize is failed")
 		return err
 	}
 
 	costs, err := ivc.FetchBilling(ctx, tableName, period)
 	if err != nil {
+		log.Println("fetch billing is failed")
 		return err
 	}
 
 	plotBytes, err := graph.Draw(costs)
 	if err != nil {
+		log.Println("graph draw is failed")
 		return err
 	}
 
-	notifier := notify.NewSlackNotifier(slackAPIToken, slackChannel)
-	if err := notifier.PostImage(bytes.NewBuffer(plotBytes)); err != nil {
+	notifier := notify.NewSlackNotifier(slackToken, slackChannel)
+	if err := notifier.PostImage(ctx, bytes.NewBuffer(plotBytes)); err != nil {
+		log.Println("Slack post is failed")
 		return err
 	}
 

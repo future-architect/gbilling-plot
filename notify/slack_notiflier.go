@@ -16,6 +16,7 @@
 package notify
 
 import (
+	"context"
 	"github.com/nlopes/slack"
 	"io"
 )
@@ -32,8 +33,8 @@ func NewSlackNotifier(slackAPIToken, slackChannel string) *slackNotifier {
 	}
 }
 
-func (n *slackNotifier) PostImage(r io.Reader) error {
-	_, err := slack.New(n.slackAPIToken).UploadFile(
+func (n *slackNotifier) PostImage(ctx context.Context, r io.Reader) error {
+	_, err := slack.New(n.slackAPIToken).UploadFileContext(ctx,
 		slack.FileUploadParameters{
 			Reader:   r,
 			Filename: "Stacked Bar Chart on Projects",
