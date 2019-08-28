@@ -1,6 +1,7 @@
 # gbilling-plot
 ![go version 1.12](https://img.shields.io/badge/go-v1.12-green.svg)
 [![Apache 2.0 License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Go Report Card](https://goreportcard.com/badge/github.com/future-architect/gbilling-plot)](https://goreportcard.com/report/github.com/future-architect/gcp-instance-scheduler)
 
 Create graphed invoice for Google Cloud Platform. You can see billing amount per GCP project.
 
