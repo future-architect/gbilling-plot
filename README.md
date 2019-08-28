@@ -1,13 +1,11 @@
 # gbilling-plot
-Create graphed invoice for Google Cloud Platform. You can see billing amount per GCP project.
-
 <img src="https://img.shields.io/badge/go-v1.12-green.svg" />
 
-Create graphed invoice for GCP. You can see billing amount per GCP project.
+Create graphed invoice for Google Cloud Platform. You can see billing amount per GCP project.
 
 ## Usage
 
-This package uses below services.
+This package uses below great services.
 
 - Google Cloud Billing（BigQuery）
 - Google Cloud Functions
@@ -15,38 +13,78 @@ This package uses below services.
 - Google Cloud Scheduler
 - Slack API
 
-## Requirements
+## QuickStart
 
-*Notify GCP Billing to Slack* requires the following to run:
+1. Install
+    ```console
+    go get -u go get -u github.com/future-architect/gbilling-plot/cmd/gbplot
+    ```
+2. Obtain GCP Service credentials that must have `bigquery.tables.getData` and `bigquery.jobs.create` permission
+  * You can assign predefined Cloud IAM roles that are `dataViewer` and `jobUser`
+3. Set environment variable
+    ```bash
+    export GOOGLE_APPLICATION_CREDENTIALS=<credentials path>
+    ```
+4. Export your GCP billing to BigQuery
+    * https://cloud.google.com/billing/docs/how-to/export-data-bigquery
+5. Run command
+    ```bash
+    gbplot -project <your project name> -table <your billing table name on bigquery> -out out.png
+    ```
+6. You can confirm out.png file
+
+## Options
+
+```console
+$ gbplot --help
+Usage of gbplot:
+  -o string
+        Output file name (default "out.png")
+  -out string
+        Output file name (default "out.png")
+  -p string
+        GCP project name
+  -project string
+        GCP project name
+  -t string
+        BigQuery billing table name
+  -table string
+        BigQuery billing table name
+```
+
+## Deploy Google Cloud Function 
+
+### Requirements
 
 * [Go](https://golang.org/dl/) more than 1.11
-    * [Cloud SDK](https://cloud.google.com/sdk/install/)
+* [Cloud SDK](https://cloud.google.com/sdk/install/)
 
-
-## Steps
+### Steps
 
 1. [Get Slack API Token](https://get.slack.help/hc/en-us/articles/215770388-Create-and-regenerate-API-tokens)
-2. Export your GCP billing to BigQuery ([reference](https://cloud.google.com/billing/docs/how-to/export-data-bigquery))
+2. [Export your GCP billing to BigQuery](https://cloud.google.com/billing/docs/how-to/export-data-bigquery)
 3. Create Cloud Scheduler
-```sh
-gcloud beta scheduler jobs create pubsub graph-billing --project "<your project name>" \
-  --schedule "50 23 * * *" \
-  --topic graph-billing \
-  --message-body="execute" \
-  --time-zone "Asia/Tokyo" \
-  --description "This is scheduler for graph billing."
-```
+    ```sh
+    gcloud beta scheduler jobs create pubsub graph-billing --project "<your project name>" \
+      --schedule "50 23 * * *" \
+      --topic graph-billing \
+      --message-body="execute" \
+      --time-zone "Asia/Tokyo" \
+      --description "This is scheduler for graph billing."
+    ```
 4. Deploy to Cloud Function
-```sh
-gcloud functions deploy graphBilling --project "<your project name>" \
-  --entry-point GraphedBilling \
-  --trigger-resource graph-billing \
-  --trigger-event google.pubsub.topic.publish \
-  --runtime go111 \
-  --set-env-vars TABLE_NAME="<your billing table name on bigquery>" \
-  --set-env-vars SLACK_API_TOKEN="<your slack api token>" \
-  --set-env-vars SLACK_CHANNEL="<your slack channel name>"
-```
+    ```sh
+    git clone https://github.com/future-architect/gbilling-plot.git
+    cd gbilling-plot
+    gcloud functions deploy graphBilling --project "<your project name>" \
+      --entry-point GraphedBilling \
+      --triggerz-resource graph-billing \
+      --trigger-event google.pubsub.topic.publish \
+      --runtime go111 \
+      --set-env-vars TABLE_NAME="<your billing table name on bigquery>" \
+      --set-env-vars SLACK_API_TOKEN="<your slack api token>" \
+      --set-env-vars SLACK_CHANNEL="<your slack channel name>"
+    ```
 5. Go to the [Cloud Scheduler page](https://cloud.google.com/scheduler/docs/tut-pub-sub) and click the *run now* button of *graphBilling*
 
 ## Example

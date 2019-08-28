@@ -27,13 +27,14 @@ import (
 
 const period = 30
 
-// export GOOGLE_APPLICATION_CREDENTIALS=key.json
 func main() {
 
 	projectID := flag.String("p", os.Getenv("GCP_PROJECT"), "GCP project name")
 	tableName := flag.String("t", os.Getenv("TABLE_NAME"), "BigQuery billing table name")
+	outFileName := flag.String("o", "out.png", "Output file name")
 	flag.StringVar(projectID, "project", "", "GCP project name")
 	flag.StringVar(tableName, "table", "", "BigQuery billing table name")
+	flag.StringVar(outFileName, "out", "out.png", "Output file name")
 	flag.Parse()
 
 	if *projectID == "" || *tableName == "" {
@@ -63,7 +64,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := ioutil.WriteFile("example.png", plotBytes, 0644); err != nil {
+
+	if err := ioutil.WriteFile(*outFileName, plotBytes, 0644); err != nil {
 		log.Fatal(err)
 	}
 
