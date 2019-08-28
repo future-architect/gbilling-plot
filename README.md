@@ -19,17 +19,19 @@ This package uses below great services.
     ```console
     go get -u go get -u github.com/future-architect/gbilling-plot/cmd/gbplot
     ```
-2. Obtain GCP Service credentials that must have `bigquery.jobs.create` permission
+2. Obtain GCP Service credentials that must have `bigquery.tables.getData` and `bigquery.jobs.create` permission
+  * You can assign predefined Cloud IAM roles that are `dataViewer` and `jobUser`
+3. Set environment variable
     ```bash
     export GOOGLE_APPLICATION_CREDENTIALS=<credentials path>
     ```
-3. Export your GCP billing to BigQuery
+4. Export your GCP billing to BigQuery
     * https://cloud.google.com/billing/docs/how-to/export-data-bigquery
-4. Run command
+5. Run command
     ```bash
     gbplot -project <your project name> -table <your billing table name on bigquery> -out out.png
     ```
-5. You can confirm out.png file
+6. You can confirm out.png file
 
 ## Options
 
