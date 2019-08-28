@@ -28,9 +28,50 @@ type Cost struct {
 
 type CostList []Cost
 
-func (list CostList) MaxCost() float64 {
+func (cl CostList) SummaryLowerProjects(thresholdRank int) CostList {
+
+	sorts := cl.sortByTotalCost()
+
+	var summaryTargets []Cost
+	if len(sorts) > thresholdRank {
+		summaryTargets = sorts[0 : len(sorts)-thresholdRank]
+	}
+
+	var result []Cost
+	var summaryCosts = map[string]Cost{}
+	for _, v := range cl {
+		if CostList(summaryTargets).containsProject(v.Project) {
+			cost, ok := summaryCosts[v.Date]
+			if ok {
+				cost.Cost += v.Cost
+				summaryCosts[v.Date] = cost
+				continue
+			}
+			summaryCosts[v.Date] = Cost{
+				Date:    v.Date,
+				Project: "Others",
+				Cost:    v.Cost,
+			}
+			continue
+		}
+		result = append(result, v)
+	}
+
+	var others []Cost
+	for _, v := range summaryCosts {
+		others = append(others, v)
+	}
+	othersCosts := CostList(others).SortByDate()
+
+	// merge
+	result = append(result, othersCosts...)
+
+	return result
+}
+
+func (cl CostList) MaxCost() float64 {
 	max := 0.0
-	for _, v := range list {
+	for _, v := range cl {
 		if max < v.Cost {
 			max = v.Cost
 		}
@@ -38,36 +79,72 @@ func (list CostList) MaxCost() float64 {
 	return max
 }
 
-func (list CostList) Values() []float64 {
-	result := make([]float64, 0, len(list))
-	for _, v := range list {
+func (cl CostList) Values() []float64 {
+	result := make([]float64, 0, len(cl))
+	for _, v := range cl {
 		result = append(result, v.Cost)
 	}
 	return result
 }
 
 // return zero padded list to adopt month length
-func (list CostList) Padding() CostList {
+func (cl CostList) Padding() CostList {
 	begin := time.Now().AddDate(0, 0, -29)
 	end := time.Now()
+	result := cl
 	for d := begin; d.Before(end); d = d.AddDate(0, 0, 1) {
 		isFind := false
-		for i := 0; i < len(list); i++ {
-			if d.Format("2006-01-02") == list[i].Date {
+		for i := 0; i < len(cl); i++ {
+			if d.Format("2006-01-02") == cl[i].Date {
 				isFind = true
 				break
 			}
 		}
 		if !isFind {
-			list = append(list, Cost{d.Format("2006-01-02"), "", 0})
+			result = append(result, Cost{d.Format("2006-01-02"), "", 0})
 		}
 	}
-	return list
+	return result
 }
 
-func (list CostList) Sort() CostList {
-	sort.Slice(list, func(i, j int) bool {
-		return list[i].Date < list[j].Date
+func (cl CostList) SortByDate() CostList {
+	sort.Slice(cl, func(i, j int) bool {
+		return cl[i].Date < cl[j].Date
 	})
-	return list
+	return cl
+}
+
+func (cl CostList) containsProject(project string) bool {
+	for _, v := range cl {
+		if project == v.Project {
+			return true
+		}
+	}
+	return false
+}
+
+// SortByTotalCost is sum cost per project and sort asc by sum cost
+func (cl CostList) sortByTotalCost() CostList {
+
+	sumMap := map[string]float64{}
+	for _, v := range cl {
+		sumMap[v.Project] += v.Cost
+	}
+
+	var sumCosts []Cost
+	for k, v := range sumMap {
+		sumCosts = append(sumCosts, Cost{
+			Project: k,
+			Cost:    v,
+		})
+	}
+
+	return CostList(sumCosts).sortByCost()
+}
+
+func (cl CostList) sortByCost() CostList {
+	sort.Slice(cl, func(i, j int) bool {
+		return cl[i].Cost < cl[j].Cost
+	})
+	return cl
 }

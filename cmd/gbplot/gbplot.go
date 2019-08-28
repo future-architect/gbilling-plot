@@ -32,9 +32,11 @@ func main() {
 	projectID := flag.String("p", os.Getenv("GCP_PROJECT"), "GCP project name")
 	tableName := flag.String("t", os.Getenv("TABLE_NAME"), "BigQuery billing table name")
 	outFileName := flag.String("o", "out.png", "Output file name")
+	limit := flag.Int("l", 8, "Max display project count")
 	flag.StringVar(projectID, "project", "", "GCP project name")
 	flag.StringVar(tableName, "table", "", "BigQuery billing table name")
 	flag.StringVar(outFileName, "out", "out.png", "Output file name")
+	flag.IntVar(limit, "limit", 8, "Max display project count")
 	flag.Parse()
 
 	if *projectID == "" || *tableName == "" {
@@ -58,7 +60,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	plotBytes, err := graph.Draw(costs)
+	summaryCosts := costs.SummaryLowerProjects(*limit)
+
+	plotBytes, err := graph.Draw(summaryCosts)
 	if err != nil {
 		log.Println("fetch billing is failed")
 		log.Fatal(err)

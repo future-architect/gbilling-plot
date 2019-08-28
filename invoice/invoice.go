@@ -34,7 +34,7 @@ func NewInvoice(ctx context.Context, projectID string) (*invoice, error) {
 	return &invoice{client: client}, nil
 }
 
-func (i *invoice) FetchBilling(ctx context.Context, tableName string, period int) ([]Cost, error) {
+func (i *invoice) FetchBilling(ctx context.Context, tableName string, period int) (CostList, error) {
 
 	endDay := time.Now()
 	startDay := endDay.AddDate(0, 0, -(period - 1))

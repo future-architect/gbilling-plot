@@ -19,6 +19,7 @@ import (
 	"bytes"
 	"cloud.google.com/go/pubsub"
 	"context"
+	"encoding/json"
 	"errors"
 	"github.com/future-architect/gbilling-plot/graph"
 	"github.com/future-architect/gbilling-plot/invoice"
@@ -29,7 +30,11 @@ import (
 
 const period = 30
 
-func GraphedBilling(ctx context.Context, _ *pubsub.Message) error {
+type Payload struct {
+	Limit int `json:"limit"`
+}
+
+func GraphedBilling(ctx context.Context, m *pubsub.Message) error {
 	log.Println("start GraphedBilling")
 
 	var (
@@ -41,6 +46,16 @@ func GraphedBilling(ctx context.Context, _ *pubsub.Message) error {
 
 	if projectID == "" || tableName == "" || slackToken == "" || slackChannel == "" {
 		return errors.New("missing env")
+	}
+
+	payload, err := decode(m.Data)
+	if err != nil {
+		log.Printf("error at the fucntion 'decode': %v", err)
+		return err
+	}
+	limit := payload.Limit
+	if limit == 0 {
+		limit = 8 // default
 	}
 
 	ivc, err := invoice.NewInvoice(ctx, projectID)
@@ -55,7 +70,9 @@ func GraphedBilling(ctx context.Context, _ *pubsub.Message) error {
 		return err
 	}
 
-	plotBytes, err := graph.Draw(costs)
+	summaryCosts := costs.SummaryLowerProjects(limit)
+
+	plotBytes, err := graph.Draw(summaryCosts)
 	if err != nil {
 		log.Println("graph draw is failed")
 		return err
@@ -69,4 +86,15 @@ func GraphedBilling(ctx context.Context, _ *pubsub.Message) error {
 
 	log.Println("finish GraphedBilling")
 	return nil
+}
+
+func decode(payload []byte) (p Payload, err error) {
+	if err = json.Unmarshal(payload, &p); err != nil {
+		log.Printf("Message[%v] ... Could not decode subscribing data: %v", payload, err)
+		if e, ok := err.(*json.SyntaxError); ok {
+			log.Printf("syntax error at byte offset %d", e.Offset)
+		}
+		return
+	}
+	return
 }
