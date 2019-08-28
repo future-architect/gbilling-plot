@@ -1,5 +1,6 @@
 # gbilling-plot
-<img src="https://img.shields.io/badge/go-v1.12-green.svg" />
+![go version 1.12](https://img.shields.io/badge/go-v1.12-green.svg)
+[![Apache 2.0 License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 Create graphed invoice for Google Cloud Platform. You can see billing amount per GCP project.
 
