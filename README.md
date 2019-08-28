@@ -39,19 +39,23 @@ This package uses below great services.
 
 ```console
 $ gbplot --help
-Usage of gbplot:
-  -o string
-        Output file name (default "out.png")
-  -out string
-        Output file name (default "out.png")
-  -p string
-        GCP project name
-  -project string
-        GCP project name
-  -t string
-        BigQuery billing table name
-  -table string
-        BigQuery billing table name
+  Usage of gbplot:
+    -l int
+          Max display project count (default 8)
+    -limit int
+          Max display project count (default 8)
+    -o string
+          Output file name (default "out.png")
+    -out string
+          Output file name (default "out.png")
+    -p string
+          GCP project name
+    -project string
+          GCP project name
+    -t string
+          BigQuery billing table name
+    -table string
+          BigQuery billing table name
 ```
 
 ## Deploy Google Cloud Function 
@@ -74,7 +78,7 @@ Usage of gbplot:
     gcloud beta scheduler jobs create pubsub graph-billing --project "<your project name>" \
       --schedule "50 23 * * *" \
       --topic graph-billing \
-      --message-body="execute" \
+      --message-body="{}" \
       --time-zone "Asia/Tokyo" \
       --description "This is scheduler for graph billing."
     ```
