@@ -63,9 +63,13 @@ Usage of gbplot:
 
 ### Steps
 
-1. [Get Slack API Token](https://get.slack.help/hc/en-us/articles/215770388-Create-and-regenerate-API-tokens)
-2. [Export your GCP billing to BigQuery](https://cloud.google.com/billing/docs/how-to/export-data-bigquery)
-3. Create Cloud Scheduler
+1. [Get Slack API Token](https://get.slack.help/hc/en-us/articles/215770388-Create-and-regenerate-API-tokens#-internal-app-tokens)
+    * Permission Scopes is required `files:write:user`
+    * Create `Bot User OAuth Access Token` and `Install App`
+2. [Create Slack Bot User](https://get.slack.help/hc/en-us/articles/215770388-Create-and-regenerate-API-tokens#-bot-user-tokens)
+    * invite bot user to slack channel
+3. [Export your GCP billing to BigQuery](https://cloud.google.com/billing/docs/how-to/export-data-bigquery)
+4. Create Cloud Scheduler
     ```sh
     gcloud beta scheduler jobs create pubsub graph-billing --project "<your project name>" \
       --schedule "50 23 * * *" \
@@ -74,7 +78,7 @@ Usage of gbplot:
       --time-zone "Asia/Tokyo" \
       --description "This is scheduler for graph billing."
     ```
-4. Deploy to Cloud Function
+5. Deploy to Cloud Function
     ```sh
     git clone https://github.com/future-architect/gbilling-plot.git
     cd gbilling-plot
@@ -87,7 +91,7 @@ Usage of gbplot:
       --set-env-vars SLACK_API_TOKEN="<your slack api token>" \
       --set-env-vars SLACK_CHANNEL="<your slack channel name>"
     ```
-5. Go to the [Cloud Scheduler page](https://cloud.google.com/scheduler/docs/tut-pub-sub) and click the *run now* button of *graphBilling*
+6. Go to the [Cloud Scheduler page](https://cloud.google.com/scheduler/docs/tut-pub-sub) and click the *run now* button of *graphBilling*
 
 ## Example
 
