@@ -16,13 +16,16 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"flag"
-	"github.com/future-architect/gbilling-plot/graph"
-	"github.com/future-architect/gbilling-plot/invoice"
 	"io/ioutil"
 	"log"
 	"os"
+
+	"github.com/future-architect/gbilling-plot/graph"
+	"github.com/future-architect/gbilling-plot/invoice"
+	"github.com/future-architect/gbilling-plot/notify"
 )
 
 const period = 30
@@ -32,19 +35,29 @@ func main() {
 	projectID := flag.String("p", os.Getenv("GCP_PROJECT"), "GCP project name")
 	tableName := flag.String("t", os.Getenv("TABLE_NAME"), "BigQuery billing table name")
 	outFileName := flag.String("o", "out.png", "Output file name")
-	limit := flag.Int("l", 8, "Max display project count")
+	sentToSlack := flag.Bool("s", false, "Send to slack")
 	flag.StringVar(projectID, "project", "", "GCP project name")
 	flag.StringVar(tableName, "table", "", "BigQuery billing table name")
 	flag.StringVar(outFileName, "out", "out.png", "Output file name")
-	flag.IntVar(limit, "limit", 8, "Max display project count")
+	flag.BoolVar(sentToSlack, "slack", false, "Send to slack")
 	flag.Parse()
 
-	if *projectID == "" || *tableName == "" {
-		log.Fatal("missing env")
+	if *projectID == "" {
+		log.Fatal("GCP project name is required")
 	}
-
+	if *tableName == "" {
+		log.Fatal("BigQuery billing table name is required")
+	}
 	if os.Getenv("GOOGLE_APPLICATION_CREDENTIALS") == "" {
 		log.Fatal("GOOGLE_APPLICATION_CREDENTIALS is required")
+	}
+	slackToken := os.Getenv("SLACK_API_TOKEN")
+	if slackToken == "" {
+		log.Fatal("SLACK_API_TOKEN is required")
+	}
+	slackChannel := os.Getenv("SLACK_CHANNEL")
+	if slackChannel == "" {
+		log.Fatal("SLACK_CHANNEL is required")
 	}
 
 	ctx := context.Background()
@@ -60,17 +73,19 @@ func main() {
 		log.Fatal(err)
 	}
 
-	summaryCosts := costs.SummaryLowerProjects(*limit)
-
-	plotBytes, err := graph.Draw(summaryCosts)
+	plotBytes, err := graph.Draw(costs)
 	if err != nil {
 		log.Println("fetch billing is failed")
 		log.Fatal(err)
 	}
 
-
 	if err := ioutil.WriteFile(*outFileName, plotBytes, 0644); err != nil {
 		log.Fatal(err)
 	}
 
+	notifier := notify.NewSlackNotifier(slackToken, slackChannel)
+	if err := notifier.PostImage(ctx, bytes.NewBuffer(plotBytes)); err != nil {
+		log.Println("Slack post is failed")
+		log.Fatal(err)
+	}
 }

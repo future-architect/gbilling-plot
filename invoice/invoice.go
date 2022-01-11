@@ -16,15 +16,24 @@
 package invoice
 
 import (
-	"cloud.google.com/go/bigquery"
 	"context"
-	"google.golang.org/api/iterator"
+	"log"
 	"time"
+
+	"cloud.google.com/go/bigquery"
+	"google.golang.org/api/iterator"
 )
 
 type invoice struct {
 	client *bigquery.Client
 }
+
+type Cost struct {
+	Project string  `bigquery:"project"`
+	Cost    float64 `bigquery:"cost"`
+}
+
+type CostList []Cost
 
 func NewInvoice(ctx context.Context, projectID string) (*invoice, error) {
 	client, err := bigquery.NewClient(ctx, projectID)
@@ -37,15 +46,14 @@ func NewInvoice(ctx context.Context, projectID string) (*invoice, error) {
 func (i *invoice) FetchBilling(ctx context.Context, tableName string, period int) (CostList, error) {
 
 	endDay := time.Now()
-	startDay := endDay.AddDate(0, 0, -(period - 1))
+	// beginning of the month
+	startDay := time.Date(endDay.Year(), endDay.Month(), 1, 0, 0, 0, 0, endDay.Location())
 	stmt := `
 		SELECT
-			CAST(sq.date AS string) AS date,
 			sq.project AS project,
 			sq.cost AS cost
 		FROM (
 			SELECT
-				DATE(_PARTITIONTIME) AS date,
 				project.id AS project,
 				IFNULL(SUM(cost), 0) AS cost
 			FROM
@@ -54,13 +62,11 @@ func (i *invoice) FetchBilling(ctx context.Context, tableName string, period int
 				DATE(_PARTITIONTIME) BETWEEN ` + startDay.Format("'2006-01-02'") + `
 				AND ` + endDay.Format("'2006-01-02'") + `
 				AND project.id IS NOT NULL
-			GROUP BY
-				DATE(_PARTITIONTIME), project ) AS sq
+			GROUP BY project ) AS sq
 		ORDER BY
-			sq.project,
-			sq.date
+			sq.project
 	`
-
+	log.Println(stmt)
 	iter, err := i.client.Query(stmt).Read(ctx)
 	if err != nil {
 		return nil, err
@@ -78,5 +84,6 @@ func (i *invoice) FetchBilling(ctx context.Context, tableName string, period int
 		}
 		costList = append(costList, c)
 	}
+	log.Println(costList)
 	return costList, nil
 }
