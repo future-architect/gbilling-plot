@@ -34,7 +34,7 @@ jobs:
           entry_point: 'GraphedBilling'
           memory_mb: '128MB'
           region: 'europe-west1'
-          event_trigger_resource: 'billing-daily-report'
+          event_trigger_resource: 'projects/monom-common-resources/topics/billing-daily-report'
           event_trigger_type: 'google.pubsub.topic.publish'
           env_vars: TABLE_NAME=${{ secrets.TABLE_NAME }},SLACK_API_TOKEN=${{ secrets.SLACK_API_TOKEN }},SLACK_CHANNEL=${{ secrets.SLACK_CHANNEL }},GCP_PROJECT=${{ secrets.GCP_PROJECT }}
  
