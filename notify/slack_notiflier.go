@@ -17,8 +17,9 @@ package notify
 
 import (
 	"context"
-	"github.com/nlopes/slack"
 	"io"
+
+	"github.com/slack-go/slack"
 )
 
 type slackNotifier struct {

@@ -17,22 +17,18 @@ package gbillingplot
 
 import (
 	"bytes"
-	"cloud.google.com/go/pubsub"
 	"context"
-	"encoding/json"
 	"errors"
+	"log"
+	"os"
+
+	"cloud.google.com/go/pubsub"
 	"github.com/future-architect/gbilling-plot/graph"
 	"github.com/future-architect/gbilling-plot/invoice"
 	"github.com/future-architect/gbilling-plot/notify"
-	"log"
-	"os"
 )
 
 const period = 30
-
-type Payload struct {
-	Limit int `json:"limit"`
-}
 
 func GraphedBilling(ctx context.Context, m *pubsub.Message) error {
 	log.Println("start GraphedBilling")
@@ -48,16 +44,6 @@ func GraphedBilling(ctx context.Context, m *pubsub.Message) error {
 		return errors.New("missing env")
 	}
 
-	payload, err := decode(m.Data)
-	if err != nil {
-		log.Printf("error at the fucntion 'decode': %v", err)
-		return err
-	}
-	limit := payload.Limit
-	if limit == 0 {
-		limit = 8 // default
-	}
-
 	ivc, err := invoice.NewInvoice(ctx, projectID)
 	if err != nil {
 		log.Println("invoice initialize is failed")
@@ -70,9 +56,7 @@ func GraphedBilling(ctx context.Context, m *pubsub.Message) error {
 		return err
 	}
 
-	summaryCosts := costs.SummaryLowerProjects(limit)
-
-	plotBytes, err := graph.Draw(summaryCosts)
+	plotBytes, err := graph.Draw(costs)
 	if err != nil {
 		log.Println("graph draw is failed")
 		return err
@@ -86,15 +70,4 @@ func GraphedBilling(ctx context.Context, m *pubsub.Message) error {
 
 	log.Println("finish GraphedBilling")
 	return nil
-}
-
-func decode(payload []byte) (p Payload, err error) {
-	if err = json.Unmarshal(payload, &p); err != nil {
-		log.Printf("Message[%v] ... Could not decode subscribing data: %v", payload, err)
-		if e, ok := err.(*json.SyntaxError); ok {
-			log.Printf("syntax error at byte offset %d", e.Offset)
-		}
-		return
-	}
-	return
 }
