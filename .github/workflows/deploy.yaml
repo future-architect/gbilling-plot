@@ -1,16 +1,14 @@
 ---
 name: Deploy
 on:
-  push:
-    branches:
-      - main
-      - master
-      - BET-2725-slack-alert-when-invoice-is-too-high
+  pull_request_review:
+    types: [submitted]
 
 jobs:
   staging:
     name: Build
     runs-on: ubuntu-20.04
+    if: github.event.review.state == 'approved'
     steps:
       - name: Checkout
         uses: actions/checkout@v2
