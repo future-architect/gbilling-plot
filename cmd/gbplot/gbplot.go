@@ -20,6 +20,7 @@ import (
 	"context"
 	"flag"
 	//"io/ioutil"
+	"fmt"
 	"log"
 	"os"
 
@@ -78,7 +79,8 @@ func main() {
 	total := charts[len(charts)-1].Value
 	if total > 50000 {
 		log.Println("high cost")
-		if err := notifier.PostMessage(ctx, "<!channel> you must to review current invoice which is higher than 5000€"); err != nil {
+		msg := fmt.Sprintf("<!channel> you must to review current invoice which is higher than %d€: %d", 5000, int(total))
+		if err := notifier.PostMessage(ctx, msg); err != nil {
 			log.Println("Slack post is failed")
 			log.Fatal(err)
 		}

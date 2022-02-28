@@ -69,7 +69,8 @@ func GraphedBilling(ctx context.Context, m *pubsub.Message) error {
 	total := charts[len(charts)-1].Value
 	if total > upperLimit {
 		log.Println("high cost")
-		if err := notifier.PostMessage(ctx, "<!channel> you must to review current invoice which is higher than " + string(upperLimit) +"€"); err != nil {
+		msg := fmt.Sprintf("<!channel> you must to review current invoice which is higher than %d€: %d", upperLimit, int(total))
+		if err := notifier.PostMessage(ctx, msg); err != nil {
 			log.Println("Slack post is failed")
 			log.Fatal(err)
 		}
