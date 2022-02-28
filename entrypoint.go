@@ -21,6 +21,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"fmt"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/future-architect/gbilling-plot/graph"
