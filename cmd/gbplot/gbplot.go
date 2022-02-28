@@ -16,10 +16,10 @@
 package main
 
 import (
-	"bytes"
+	//"bytes"
 	"context"
 	"flag"
-	"io/ioutil"
+	//"io/ioutil"
 	"log"
 	"os"
 
@@ -72,20 +72,29 @@ func main() {
 		log.Println("fetch billing is failed")
 		log.Fatal(err)
 	}
-
-	plotBytes, err := graph.Draw(costs)
-	if err != nil {
-		log.Println("fetch billing is failed")
-		log.Fatal(err)
-	}
-
-	if err := ioutil.WriteFile(*outFileName, plotBytes, 0644); err != nil {
-		log.Fatal(err)
-	}
+	charts, _ := graph.GetChartValues(costs)
 
 	notifier := notify.NewSlackNotifier(slackToken, slackChannel)
-	if err := notifier.PostImage(ctx, bytes.NewBuffer(plotBytes)); err != nil {
-		log.Println("Slack post is failed")
-		log.Fatal(err)
+	total := charts[len(charts)-1].Value
+	if total > 50000 {
+		log.Println("high cost")
+		if err := notifier.PostMessage(ctx, "<!channel> you must to review current invoice which is higher than 5000€"); err != nil {
+			log.Println("Slack post is failed")
+			log.Fatal(err)
+		}
 	}
+	log.Println()
+	//plotBytes, err := graph.Draw(costs)
+	//if err != nil {
+	//	log.Println("graph draw is failed")
+	//	log.Fatal(err)
+	//}
+
+	//log.Println(plotBytes)
+
+	//notifier := notify.NewSlackNotifier(slackToken, slackChannel)
+	//if err := notifier.PostImage(ctx, bytes.NewBuffer(plotBytes)); err != nil {
+	//	log.Println("Slack post is failed")
+	//	return err
+	//}
 }

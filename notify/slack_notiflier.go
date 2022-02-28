@@ -43,3 +43,11 @@ func (n *slackNotifier) PostImage(ctx context.Context, r io.Reader) error {
 		})
 	return err
 }
+
+func (n* slackNotifier) PostMessage(ctx context.Context, msg string) error {
+	_, _, err := slack.New(n.slackAPIToken).PostMessageContext(ctx,
+		n.slackChannel,
+		slack.MsgOptionText(msg, false),
+	)
+	return err
+}

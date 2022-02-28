@@ -24,8 +24,7 @@ import (
 	chart "github.com/wcharczuk/go-chart/v2"
 )
 
-func Draw(costList invoice.CostList) ([]byte, error) {
-
+func GetChartValues(costList invoice.CostList) ([]chart.Value, error) {
 	var values []chart.Value
 	total := 0.0
 	for _, cost := range costList {
@@ -40,6 +39,13 @@ func Draw(costList invoice.CostList) ([]byte, error) {
 		Value: total,
 		Label: "total",
 	})
+
+	return values, nil
+}
+
+func Draw(costList invoice.CostList) ([]byte, error) {
+
+	values, _ := GetChartValues(costList)
 
 	log.Println(values)
 	graph := chart.BarChart{
