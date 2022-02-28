@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - master
+      - BET-2725-slack-alert-when-invoice-is-too-high
 
 jobs:
   staging:
